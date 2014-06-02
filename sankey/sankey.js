@@ -272,10 +272,16 @@ d3.sankey = function() {
     });
 
     function ascendingSourceDepth(a, b) {
+      if (a.sourceSortKey !== b.sourceSortKey) {
+        return a.sourceSortKey - b.sourceSortKey;
+      }
       return a.source.y - b.source.y;
     }
 
     function ascendingTargetDepth(a, b) {
+      if (a.targetSortKey !== b.targetSortKey) {
+        return a.targetSortKey - b.targetSortKey;
+      }
       return a.target.y - b.target.y;
     }
   }
