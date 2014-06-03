@@ -2,6 +2,7 @@ d3.sankey = function() {
   var sankey = {},
       nodeWidth = 24,
       nodePadding = 8,
+      extendLinksThroughNodes = false,
       size = [1, 1],
       nodes = [],
       links = [];
@@ -15,6 +16,12 @@ d3.sankey = function() {
   sankey.nodePadding = function(_) {
     if (!arguments.length) return nodePadding;
     nodePadding = +_;
+    return sankey;
+  };
+
+  sankey.extendLinksThroughNodes = function(_) {
+    if (!arguments.length) return extendLinksThroughNodes;
+    extendLinksThroughNodes = !!_;
     return sankey;
   };
 
@@ -54,17 +61,39 @@ d3.sankey = function() {
     var curvature = .5;
 
     function link(d) {
-      var x0 = d.source.x + d.source.dx,
+      var path = '';
+      var xe = d.source.x + d.source.dx / 2,
+          x0 = d.source.x + d.source.dx,
           x1 = d.target.x,
+          xE = d.target.x + d.target.dx / 2,
           xi = d3.interpolateNumber(x0, x1),
           x2 = xi(curvature),
           x3 = xi(1 - curvature),
           y0 = d.source.y + d.sy + d.dy / 2,
           y1 = d.target.y + d.ty + d.dy / 2;
-      return "M" + x0 + "," + y0
-           + "C" + x2 + "," + y0
-           + " " + x3 + "," + y1
-           + " " + x1 + "," + y1;
+      if (d.source.targetLinks.length == 0)
+        xe -= d.source.dx / 2;
+      if (d.target.sourceLinks.length == 0)
+        xE += d.target.dx / 2;
+      if (extendLinksThroughNodes) {
+        xe = Math.round(xe);
+        x0 = Math.round(x0);
+        x1 = Math.round(x1);
+        xE = Math.round(xE);
+      }
+      if (extendLinksThroughNodes) {
+        path += "M" + xe + "," + y0
+             +  "L" + x0 + "," + y0;
+      } else {
+        path += "M" + x0 + "," + y0;
+      }
+
+      path += "C" + x2 + "," + y0
+           +  " " + x3 + "," + y1
+           +  " " + x1 + "," + y1;
+      if (extendLinksThroughNodes)
+        path += "L" + xE + "," + y1;
+      return path;
     }
 
     link.curvature = function(_) {
